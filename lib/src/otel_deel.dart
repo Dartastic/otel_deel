@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_deel_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_deel';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class DeelResult {
+  /// Creates a result.
   const DeelResult({
     this.itemCount,
     this.contractType,
@@ -61,8 +62,13 @@ class DeelResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class DeelCallResult<T> {
+  /// Creates a call result.
   const DeelCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final DeelResult? result;
 }
@@ -90,44 +96,44 @@ Future<T> tracedDeel<T>({
   final span = _tracer().startSpan(
     'deel $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.itemCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'deel.item_count',
           r.result!.itemCount!,
         ));
       }
       if (r.result!.contractType != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.contract.type',
           r.result!.contractType!,
         ));
       }
       if (r.result!.contractStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.contract.status',
           r.result!.contractStatus!,
         ));
       }
       if (r.result!.workerCountryCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.worker.country_code',
           r.result!.workerCountryCode!,
         ));
       }
       if (r.result!.payrollProvider != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.payroll.provider',
           r.result!.payrollProvider!,
         ));
       }
       if (r.result!.invoiceStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.invoice.status',
           r.result!.invoiceStatus!,
         ));
@@ -139,31 +145,31 @@ Future<T> tracedDeel<T>({
         }
       }
       if (r.result!.amountMinor != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'deel.amount.minor',
           r.result!.amountMinor!,
         ));
       }
       if (r.result!.currency != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.currency',
           r.result!.currency!,
         ));
       }
       if (r.result!.paymentMethod != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.payment_method',
           r.result!.paymentMethod!,
         ));
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'deel.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -174,13 +180,13 @@ Future<T> tracedDeel<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
